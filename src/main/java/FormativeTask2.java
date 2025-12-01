@@ -5,15 +5,9 @@ import swiftbot.*;
 public class FormativeTask2 {
     static SwiftBotAPI swiftbot;
 
-    static char[] colours = { 'R', 'G', 'B', 'W' };
-
-    static int[] red = new int[] { 255, 0, 0 };
-    static int[] blue = new int[] { 0, 0, 255 };
-    static int[] green = new int[] { 0, 255, 0 };
-    static int[] white = new int[] { 255, 255, 255 };
-
     private static class sequence {
         static ArrayList<Character> sequence = new ArrayList<Character>();
+        static char[] colours = { 'R', 'G', 'B', 'W' };
 
         private static char[] generate() {
             for (int i = 0; i < 5; i++) {
@@ -32,6 +26,11 @@ public class FormativeTask2 {
     }
 
     private static void lightButtons(char c) {
+        int[] red = new int[] { 255, 0, 0 };
+        int[] blue = new int[] { 0, 0, 255 };
+        int[] green = new int[] { 0, 255, 0 };
+        int[] white = new int[] { 255, 255, 255 };
+
         switch (c) {
             case 'R':
                 swiftbot.fillUnderlights(red);
@@ -43,6 +42,49 @@ public class FormativeTask2 {
                 swiftbot.fillUnderlights(white);
             default:
                 swiftbot.disableUnderlights();
+        }
+    }
+
+    private static class input {
+        static final Object lock = new Object();
+        static Boolean result = null;
+
+        static Button buttons[] = { Button.A, Button.B, Button.X, Button.Y };
+
+        private static boolean track(Button correct) {
+            // swiftbot.enableButton(Button.A, () -> handlePress(Button.A, button));
+            //
+            // swiftbot.enableButton(Button.B, () -> handlePress(Button.B, button));
+            //
+            // swiftbot.enableButton(Button.X, () -> handlePress(Button.X, button));
+            //
+            // swiftbot.enableButton(Button.Y, () -> handlePress(Button.Y, button));
+
+            for (Button button : buttons) {
+                swiftbot.enableButton(button, () -> handlePress(button, correct));
+            }
+
+            synchronized (lock) {
+                while (result == null) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("input.track() interrupt");
+                        System.out.println(e);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static void handlePress(Button input, Button correct) {
+            synchronized (lock) {
+                result = (input == correct);
+                lock.notify();
+            }
+
+            swiftbot.disableButton(input);
         }
     }
 
@@ -61,5 +103,9 @@ public class FormativeTask2 {
         // }
 
         swiftbot = SwiftBotAPI.INSTANCE;
+
+        System.out.println("starting...");
+
+        input.track(Button.A);
     }
 }
