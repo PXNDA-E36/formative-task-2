@@ -142,7 +142,41 @@ public class FormativeTask2 {
         }
     }
 
+    private static String eog(int state) {
+        if (state == 0) {
+            System.out.println("Incorrect input. Press A to end game or B to restart.");
+            swiftbot.setButtonLight(Button.A, true);
+            swiftbot.setButtonLight(Button.B, true);
+            if (input.track(Button.A)) {
+                swiftbot.disableButtonLights();
+                return "end";
+            } else if (input.track(Button.B)) {
+                swiftbot.disableButtonLights();
+                return "restart";
+            }
+        } else if (state == 5) {
+            System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
+            swiftbot.setButtonLight(Button.A, true);
+            swiftbot.setButtonLight(Button.B, true);
+            swiftbot.setButtonLight(Button.X, true);
+            if (input.track(Button.A)) {
+                swiftbot.disableButtonLights();
+                return "end";
+            } else if (input.track(Button.B)) {
+                swiftbot.disableButtonLights();
+                return "restart";
+            } else if (input.track(Button.X)) {
+                swiftbot.disableButtonLights();
+                return "continue";
+            }
+        }
+
+        return "unknown";
+    }
+
     public static void main(String[] args) {
+        swiftbot = SwiftBotAPI.INSTANCE;
+
         int score = 0;
         int round = 1;
 
@@ -150,14 +184,63 @@ public class FormativeTask2 {
 
         boolean run = true;
 
-        // while (run) {
-        // for (int i = 0; i < array.length; i++) {
-        //
-        // }
-        // }
+        boolean correct = false;
 
-        swiftbot = SwiftBotAPI.INSTANCE;
+        game: while (run) {
+            System.out.println(array);
+            for (int i = 0; i < array.length + 1; i++) {
+                for (int j = 0; j <= i; j++) {
+                    char c = array[j];
 
-        System.out.println("starting...");
+                    light(c);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+
+                    }
+
+                    swiftbot.disableUnderlights();
+
+                    switch (c) {
+                        case 'R':
+                            correct = input.track(Button.A);
+                            break;
+                        case 'G':
+                            correct = input.track(Button.B);
+                            break;
+                        case 'B':
+                            correct = input.track(Button.X);
+                            break;
+                        case 'W':
+                            correct = input.track(Button.Y);
+                            break;
+                    }
+
+                    if (correct) {
+                        score += 1;
+                        round += 1;
+                        System.out.println("Score: " + score);
+                    } else if (!correct) {
+                        String state = eog(0);
+
+                        switch (state) {
+                            case "end":
+                                System.out.println("end selected");
+                                run = false;
+                                break game;
+                            case "restart":
+                                array = null;
+                                System.out.println(array);
+                                array = sequence.generate();
+                                System.out.println(array);
+                                continue;
+                        }
+                    }
+                }
+            }
+        }
+        swiftbot.disableUnderlights();
+        System.exit(0);
     }
 }
