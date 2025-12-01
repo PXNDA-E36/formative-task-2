@@ -154,7 +154,8 @@ public class FormativeTask2 {
                 return "continue";
             }
         }
-        return "unknown";
+
+        return null;
     }
 
     private static ArrayList<ArrayList<Character>> play(boolean add) {
