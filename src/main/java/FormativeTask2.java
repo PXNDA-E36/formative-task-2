@@ -155,7 +155,7 @@ public class FormativeTask2 {
             }
         }
 
-        return null;
+        return "uknown";
     }
 
     private static ArrayList<ArrayList<Character>> play(boolean add) {
@@ -225,6 +225,12 @@ public class FormativeTask2 {
                     case "continue":
                         array = play(true);
                         break;
+                    case "unknown":
+                        System.out.println("What did you do");
+                        System.exit(0);
+                    default:
+                        System.out.println("How did you get here");
+                        System.exit(0);
                 }
             }
 
@@ -278,6 +284,12 @@ public class FormativeTask2 {
                                 correctInput = false;
                                 correctRow = true;
                                 continue game;
+                            case "unknown":
+                                System.out.println("What did you do");
+                                System.exit(0);
+                            default:
+                                System.out.println("How did you get here");
+                                System.exit(0);
                         }
 
                         break;
