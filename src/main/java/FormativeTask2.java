@@ -7,6 +7,13 @@ public class FormativeTask2 {
     static SwiftBotAPI swiftbot;
     static char[] colours = { 'R', 'G', 'B', 'W' };
     static ArrayList<Character> sequence = new ArrayList<Character>();
+    static boolean run = true;
+    static ArrayList<ArrayList<Character>> array = play(false);
+    static int score = 0;
+    static int rowCount = 0;
+
+    static boolean correctInput = false;
+    static boolean correctRow = true;
 
     private static void light(char c) {
         int[] red = new int[] { 255, 0, 0 };
@@ -122,40 +129,31 @@ public class FormativeTask2 {
         }
     }
 
-    private static String eog(int state) {
-        if (state == 0) {
+    private static class eog {
+        private static String incorrect() {
+            swiftbot.disableAllButtons();
             System.out.println("Incorrect input. Press A to end game or B to restart.");
             swiftbot.setButtonLight(Button.A, true);
             swiftbot.setButtonLight(Button.B, true);
 
             if (input.track(Button.A)) {
                 swiftbot.disableButtonLights();
-                return "end";
-            }
-
-            if (input.track(Button.B)) {
-                swiftbot.disableButtonLights();
-                return "restart";
-            }
-        } else if (state == 5) {
-            System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
-            swiftbot.setButtonLight(Button.A, true);
-            swiftbot.setButtonLight(Button.B, true);
-            swiftbot.setButtonLight(Button.X, true);
-
-            if (input.track(Button.A)) {
-                swiftbot.disableButtonLights();
+                System.out.println("end selected");
+                run = false;
                 return "end";
             } else if (input.track(Button.B)) {
                 swiftbot.disableButtonLights();
+                sequence.clear();
+                array = play(false);
+                score = 0;
+                rowCount = 0;
+                correctInput = false;
+                correctRow = true;
                 return "restart";
-            } else if (input.track(Button.X)) {
-                swiftbot.disableButtonLights();
-                return "continue";
             }
-        }
 
-        return "uknown";
+            return "unknown";
+        }
     }
 
     private static ArrayList<ArrayList<Character>> play(boolean add) {
@@ -191,47 +189,11 @@ public class FormativeTask2 {
     public static void main(String[] args) {
         swiftbot = SwiftBotAPI.INSTANCE;
 
-        int score = 0;
-        int rowCount = 0;
-
-        boolean run = true;
-
-        boolean correctInput = false;
-        boolean correctRow = true;
-
         // init();
-
-        ArrayList<ArrayList<Character>> array = play(false);
 
         game: while (run) {
             if (score == 5) {
-                String state = eog(5);
-
-                swiftbot.disableAllButtons();
-
-                switch (state) {
-                    case "end":
-                        System.out.println("end selected");
-                        run = false;
-                        break game;
-                    case "restart":
-                        sequence.clear();
-                        array = play(false);
-                        score = 0;
-                        rowCount = 0;
-                        correctInput = false;
-                        correctRow = true;
-                        continue game;
-                    case "continue":
-                        array = play(true);
-                        break;
-                    case "unknown":
-                        System.out.println("What did you do");
-                        System.exit(0);
-                    default:
-                        System.out.println("How did you get here");
-                        System.exit(0);
-                }
+                // String state = eog(5);
             }
 
             for (ArrayList<Character> row : array) {
@@ -269,20 +231,12 @@ public class FormativeTask2 {
                     if (!correctInput) {
                         correctRow = false;
                         swiftbot.disableAllButtons();
-                        String state = eog(0);
+                        String state = eog.incorrect();
 
                         switch (state) {
                             case "end":
-                                System.out.println("end selected");
-                                run = false;
                                 break game;
                             case "restart":
-                                sequence.clear();
-                                array = play(false);
-                                score = 0;
-                                rowCount = 0;
-                                correctInput = false;
-                                correctRow = true;
                                 continue game;
                             case "unknown":
                                 System.out.println("What did you do");
