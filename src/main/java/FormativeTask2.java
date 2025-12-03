@@ -11,6 +11,8 @@ public class FormativeTask2 {
     static ArrayList<ArrayList<Character>> array = play(false);
     static int score = 0;
     static int rowCount = 0;
+    static boolean quit = false;
+    static boolean restart = false;
 
     static boolean correctInput = false;
     static boolean correctRow = true;
@@ -130,7 +132,7 @@ public class FormativeTask2 {
     }
 
     private static class eog {
-        private static String incorrect() {
+        private static void incorrect() {
             swiftbot.disableAllButtons();
             System.out.println("Incorrect input. Press A to end game or B to restart.");
             swiftbot.setButtonLight(Button.A, true);
@@ -140,7 +142,7 @@ public class FormativeTask2 {
                 swiftbot.disableButtonLights();
                 System.out.println("end selected");
                 run = false;
-                return "end";
+                quit = true;
             } else if (input.track(Button.B)) {
                 swiftbot.disableButtonLights();
                 sequence.clear();
@@ -149,10 +151,8 @@ public class FormativeTask2 {
                 rowCount = 0;
                 correctInput = false;
                 correctRow = true;
-                return "restart";
+                restart = true;
             }
-
-            return "unknown";
         }
     }
 
@@ -193,7 +193,6 @@ public class FormativeTask2 {
 
         game: while (run) {
             if (score == 5) {
-                // String state = eog(5);
             }
 
             for (ArrayList<Character> row : array) {
@@ -231,21 +230,14 @@ public class FormativeTask2 {
                     if (!correctInput) {
                         correctRow = false;
                         swiftbot.disableAllButtons();
-                        String state = eog.incorrect();
 
-                        switch (state) {
-                            case "end":
-                                break game;
-                            case "restart":
-                                continue game;
-                            case "unknown":
-                                System.out.println("What did you do");
-                                System.exit(0);
-                            default:
-                                System.out.println("How did you get here");
-                                System.exit(0);
+                        eog.incorrect();
+
+                        if (quit) {
+                            break game;
+                        } else if (restart) {
+                            continue game;
                         }
-
                         break;
                     }
                 }
