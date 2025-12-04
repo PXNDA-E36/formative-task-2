@@ -1,3 +1,4 @@
+import java.awt.print.Printable;
 import java.util.ArrayList;
 
 import swiftbot.*;
@@ -58,10 +59,15 @@ public class FormativeTask2 {
                 }
             }
 
+            System.out.println("input.track result is " + result);
+
             return result;
         }
 
         private static void handle(Button input, Button correct) {
+            System.out.println("input is " + input);
+            System.out.println("correct is " + correct);
+
             synchronized (lock) {
                 result = (input == correct);
                 lock.notify();
@@ -128,15 +134,16 @@ public class FormativeTask2 {
             swiftbot.setButtonLight(Button.A, true);
             swiftbot.setButtonLight(Button.B, true);
 
-            if (input.track(Button.A)) {
-                swiftbot.disableButtonLights();
-                return "end";
+            while (true) {
+                if (input.track(Button.A)) {
+                    swiftbot.disableButtonLights();
+                    return "end";
+                } else if (input.track(Button.B)) {
+                    swiftbot.disableButtonLights();
+                    return "restart";
+                }
             }
 
-            if (input.track(Button.B)) {
-                swiftbot.disableButtonLights();
-                return "restart";
-            }
         } else if (state == 5) {
             System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
             swiftbot.setButtonLight(Button.A, true);
