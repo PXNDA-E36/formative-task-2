@@ -128,41 +128,69 @@ public class FormativeTask2 {
         }
     }
 
-    private static String eog(int state) {
-        if (state == 0) {
-            System.out.println("Incorrect input. Press A to end game or B to restart.");
-            swiftbot.setButtonLight(Button.A, true);
-            swiftbot.setButtonLight(Button.B, true);
+    private static class eog {
+        private static Button handle(Button button) {
+            if (input.track(button)) {
+                swiftbot.disableButtonLights();
 
-            while (true) {
+                return button;
+            }
+            return null;
+        }
+
+        private static String main(int state) {
+            Button buttonA;
+            Button buttonB;
+            Button buttonX;
+
+            if (state == 0) {
+                System.out.println("Incorrect input. Press A to end game or B to restart.");
+                swiftbot.setButtonLight(Button.A, true);
+                swiftbot.setButtonLight(Button.B, true);
+
+                while (true) {
+                    buttonA = handle(Button.A);
+                    buttonB = handle(Button.B);
+
+                    System.out.println("inside while loop");
+                    System.out.println("buttonA is " + buttonA);
+                    System.out.println("buttonB is " + buttonB);
+
+                    if (buttonA == Button.A || buttonB == Button.B) {
+                        System.out.println("inside if statment inside while");
+
+                        swiftbot.disableButtonLights();
+                        swiftbot.disableAllButtons();
+
+                        if (buttonA != null && buttonB == null) {
+                            return "end";
+                        } else if (buttonB != null && buttonA == null) {
+                            return "restart";
+                        }
+                    }
+                }
+
+            } else if (state == 5) {
+                System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
+                swiftbot.setButtonLight(Button.A, true);
+                swiftbot.setButtonLight(Button.B, true);
+                swiftbot.setButtonLight(Button.X, true);
+
                 if (input.track(Button.A)) {
                     swiftbot.disableButtonLights();
                     return "end";
                 } else if (input.track(Button.B)) {
                     swiftbot.disableButtonLights();
                     return "restart";
+                } else if (input.track(Button.X)) {
+                    swiftbot.disableButtonLights();
+                    return "continue";
                 }
             }
 
-        } else if (state == 5) {
-            System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
-            swiftbot.setButtonLight(Button.A, true);
-            swiftbot.setButtonLight(Button.B, true);
-            swiftbot.setButtonLight(Button.X, true);
-
-            if (input.track(Button.A)) {
-                swiftbot.disableButtonLights();
-                return "end";
-            } else if (input.track(Button.B)) {
-                swiftbot.disableButtonLights();
-                return "restart";
-            } else if (input.track(Button.X)) {
-                swiftbot.disableButtonLights();
-                return "continue";
-            }
+            return "uknown";
         }
 
-        return "uknown";
     }
 
     private static ArrayList<ArrayList<Character>> play(boolean add) {
@@ -212,7 +240,7 @@ public class FormativeTask2 {
 
         game: while (run) {
             if (score == 5) {
-                String state = eog(5);
+                String state = eog.main(5);
 
                 swiftbot.disableAllButtons();
 
@@ -276,7 +304,7 @@ public class FormativeTask2 {
                     if (!correctInput) {
                         correctRow = false;
                         swiftbot.disableAllButtons();
-                        String state = eog(0);
+                        String state = eog.main(0);
 
                         switch (state) {
                             case "end":
