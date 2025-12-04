@@ -1,10 +1,15 @@
-import java.awt.print.Printable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import swiftbot.*;
 // import com.pi4j.io.g
 
 public class FormativeTask2 {
+    private static class inputResponse {
+        private Boolean result;
+        private Button button;
+    }
+
     static SwiftBotAPI swiftbot;
     static char[] colours = { 'R', 'G', 'B', 'W' };
     static ArrayList<Character> sequence = new ArrayList<Character>();
@@ -37,12 +42,18 @@ public class FormativeTask2 {
     private static class input {
         static final Object lock = new Object();
         static Boolean result = null;
-
-        static Button buttons[] = { Button.A, Button.B, Button.X, Button.Y };
+        static inputResponse response = new inputResponse();
 
         private static boolean track(Button correct) {
             result = null;
             swiftbot.disableAllButtons();
+
+            ArrayList<Button> buttons = new ArrayList<>();
+
+            buttons.add(Button.A);
+            buttons.add(Button.B);
+            buttons.add(Button.X);
+            buttons.add(Button.Y);
 
             for (Button button : buttons) {
                 swiftbot.enableButton(button, () -> handle(button, correct));
@@ -64,6 +75,67 @@ public class FormativeTask2 {
             return result;
         }
 
+        private static inputResponse track(Button button1, Button button2) {
+            swiftbot.disableAllButtons();
+            response.result = null;
+            response.button = null;
+
+            ArrayList<Button> buttons = new ArrayList<>();
+
+            buttons.add(button1);
+            buttons.add(button2);
+
+            for (Button button : buttons) {
+                swiftbot.enableButton(button, () -> handle(button, button1, button2));
+            }
+
+            synchronized (lock) {
+                while (response.result == null) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("input.track() interrupt");
+                        System.out.println(e);
+                    }
+                }
+            }
+
+            System.out.println("input.track result is " + response.result);
+
+            return response;
+        }
+
+        private static inputResponse track(Button button1, Button button2, Button button3) {
+            swiftbot.disableAllButtons();
+            response.result = null;
+            response.button = null;
+
+            ArrayList<Button> buttons = new ArrayList<>();
+
+            buttons.add(button1);
+            buttons.add(button2);
+            buttons.add(button3);
+
+            for (Button button : buttons) {
+                swiftbot.enableButton(button, () -> handle(button, button1, button2, button3));
+            }
+
+            synchronized (lock) {
+                while (response.result == null) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("input.track() interrupt");
+                        System.out.println(e);
+                    }
+                }
+            }
+
+            System.out.println("input.track result is " + response.result);
+
+            return response;
+        }
+
         private static void handle(Button input, Button correct) {
             System.out.println("input is " + input);
             System.out.println("correct is " + correct);
@@ -75,6 +147,46 @@ public class FormativeTask2 {
 
             swiftbot.disableButton(input);
         }
+
+        private static void handle(Button input, Button button1, Button button2) {
+            System.out.println("input is " + input);
+
+            synchronized (lock) {
+                if (input == button1) {
+                    response.result = true;
+                    response.button = button1;
+                } else if (input == button2) {
+                    response.result = true;
+                    response.button = button2;
+                } else
+                    response.result = null;
+                lock.notify();
+            }
+
+            swiftbot.disableButton(input);
+        }
+
+        private static void handle(Button input, Button button1, Button button2, Button button3) {
+            System.out.println("input is " + input);
+
+            synchronized (lock) {
+                if (input == button1) {
+                    response.result = true;
+                    response.button = button1;
+                } else if (input == button2) {
+                    response.result = true;
+                    response.button = button2;
+                } else if (input == button3) {
+                    response.result = true;
+                    response.button = button3;
+                } else
+                    response.result = null;
+                lock.notify();
+            }
+
+            swiftbot.disableButton(input);
+        }
+
     }
 
     private static void init() {
@@ -135,33 +247,44 @@ public class FormativeTask2 {
             swiftbot.setButtonLight(Button.B, true);
 
             while (true) {
-                if (input.track(Button.A)) {
+                inputResponse response = input.track(Button.A, Button.B);
+
+                if (response.result && response.button == Button.A) {
                     swiftbot.disableButtonLights();
                     return "end";
-                } else if (input.track(Button.B)) {
+                }
+
+                if (response.result && response.button == Button.B) {
                     swiftbot.disableButtonLights();
                     return "restart";
                 }
             }
-
         } else if (state == 5) {
             System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
             swiftbot.setButtonLight(Button.A, true);
             swiftbot.setButtonLight(Button.B, true);
             swiftbot.setButtonLight(Button.X, true);
 
-            if (input.track(Button.A)) {
-                swiftbot.disableButtonLights();
-                return "end";
-            } else if (input.track(Button.B)) {
-                swiftbot.disableButtonLights();
-                return "restart";
-            } else if (input.track(Button.X)) {
-                swiftbot.disableButtonLights();
-                return "continue";
-            }
-        }
+            while (true) {
+                inputResponse response = input.track(Button.A, Button.B, Button.X);
 
+                if (response.result && response.button == Button.A) {
+                    swiftbot.disableButtonLights();
+                    return "end";
+                }
+
+                if (response.result && response.button == Button.B) {
+                    swiftbot.disableButtonLights();
+                    return "restart";
+                }
+
+                if (response.result && response.button == Button.X) {
+                    swiftbot.disableButtonLights();
+                    return "continue";
+                }
+            }
+
+        }
         return "uknown";
     }
 
