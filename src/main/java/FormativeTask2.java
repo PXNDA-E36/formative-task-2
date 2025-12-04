@@ -129,46 +129,53 @@ public class FormativeTask2 {
     }
 
     private static class eog {
-        private static Button handle(Button button) {
-            if (input.track(button)) {
-                swiftbot.disableButtonLights();
+        static final Object lock = new Object();
+        static Boolean result = null;
+        static Button button;
 
-                return button;
+        private static void handle(Button handle) {
+            synchronized (lock) {
+                if (input.track(handle)) {
+                    result = true;
+                    button = handle;
+                    lock.notify();
+                } else if (!input.track(handle)) {
+                    lock.notify();
+                }
             }
-            return null;
         }
 
         private static String main(int state) {
-            Button buttonA;
-            Button buttonB;
-            Button buttonX;
-
             if (state == 0) {
                 System.out.println("Incorrect input. Press A to end game or B to restart.");
                 swiftbot.setButtonLight(Button.A, true);
                 swiftbot.setButtonLight(Button.B, true);
 
-                while (true) {
-                    buttonA = handle(Button.A);
-                    buttonB = handle(Button.B);
+                handle(Button.A);
+                handle(Button.B);
 
-                    System.out.println("inside while loop");
-                    System.out.println("buttonA is " + buttonA);
-                    System.out.println("buttonB is " + buttonB);
+                System.out.println("Button is " + button);
 
-                    if (buttonA == Button.A || buttonB == Button.B) {
-                        System.out.println("inside if statment inside while");
-
-                        swiftbot.disableButtonLights();
-                        swiftbot.disableAllButtons();
-
-                        if (buttonA != null && buttonB == null) {
-                            return "end";
-                        } else if (buttonB != null && buttonA == null) {
-                            return "restart";
+                synchronized (lock) {
+                    while (result == null) {
+                        System.out.println("Button is " + button);
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            System.out.println("input.track() interrupt");
+                            System.out.println(e);
                         }
                     }
                 }
+
+                System.out.println("Button is " + button);
+                swiftbot.disableAllButtons();
+                swiftbot.disableButtonLights();
+
+                if (button == Button.A)
+                    return "end";
+                if (button == Button.B)
+                    return "restart";
 
             } else if (state == 5) {
                 System.out.println("Congratulations! Press A to end game, B to restart or X to continue.");
