@@ -1,8 +1,5 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-
 import swiftbot.*;
-// import com.pi4j.io.g
 
 public class FormativeTask2 {
     private static class inputResponse {
@@ -70,8 +67,6 @@ public class FormativeTask2 {
                 }
             }
 
-            System.out.println("input.track result is " + result);
-
             return result;
         }
 
@@ -99,8 +94,6 @@ public class FormativeTask2 {
                     }
                 }
             }
-
-            System.out.println("input.track result is " + response.result);
 
             return response;
         }
@@ -131,15 +124,10 @@ public class FormativeTask2 {
                 }
             }
 
-            System.out.println("input.track result is " + response.result);
-
             return response;
         }
 
         private static void handle(Button input, Button correct) {
-            System.out.println("input is " + input);
-            System.out.println("correct is " + correct);
-
             synchronized (lock) {
                 result = (input == correct);
                 lock.notify();
@@ -149,8 +137,6 @@ public class FormativeTask2 {
         }
 
         private static void handle(Button input, Button button1, Button button2) {
-            System.out.println("input is " + input);
-
             synchronized (lock) {
                 if (input == button1) {
                     response.result = true;
@@ -167,8 +153,6 @@ public class FormativeTask2 {
         }
 
         private static void handle(Button input, Button button1, Button button2, Button button3) {
-            System.out.println("input is " + input);
-
             synchronized (lock) {
                 if (input == button1) {
                     response.result = true;
@@ -190,6 +174,8 @@ public class FormativeTask2 {
     }
 
     private static void init() {
+        swiftbot.disableAllButtons();
+
         for (Character c : colours) {
             boolean correct;
             switch (c) {
@@ -285,7 +271,7 @@ public class FormativeTask2 {
             }
 
         }
-        return "uknown";
+        return "unknown";
     }
 
     private static ArrayList<ArrayList<Character>> play(boolean add) {
@@ -311,10 +297,6 @@ public class FormativeTask2 {
             array2D.add(row);
         }
 
-        for (ArrayList<Character> row : array2D) {
-            System.out.println(row);
-        }
-
         return array2D;
     }
 
@@ -329,12 +311,12 @@ public class FormativeTask2 {
         boolean correctInput = false;
         boolean correctRow = true;
 
-        // init();
+        init();
 
         ArrayList<ArrayList<Character>> array = play(false);
 
         game: while (run) {
-            if (score == 5) {
+            if (score % 5 == 0 && score > 0) {
                 String state = eog(5);
 
                 swiftbot.disableAllButtons();
